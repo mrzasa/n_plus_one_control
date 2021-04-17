@@ -31,7 +31,7 @@ module NPlusOneControl
     def failure_message(type, queries) # rubocop:disable Metrics/MethodLength
       msg = ["#{FAILURE_MESSAGES[type]}, but got:\n"]
       queries.each do |(scale, data)|
-        msg << "  #{data.size} for N=#{scale}\n"
+        msg << "  #{data[:db].size} for N=#{scale}\n"
       end
 
       msg.concat(table_usage_stats(queries.map(&:last))) if show_table_stats
@@ -39,7 +39,7 @@ module NPlusOneControl
       if verbose
         queries.each do |(scale, data)|
           msg << "Queries for N=#{scale}\n"
-          msg << data.map { |sql| "  #{truncate_query(sql)}\n" }.join.to_s
+          msg << data[:db].map { |sql| "  #{truncate_query(sql)}\n" }.join.to_s
         end
       end
 
@@ -50,7 +50,7 @@ module NPlusOneControl
       msg = ["Unmatched query numbers by tables:\n"]
 
       before, after = runs.map do |queries|
-        queries.group_by do |query|
+        queries[:db].group_by do |query|
           matches = query.match(EXTRACT_TABLE_RXP)
           next unless matches
 
