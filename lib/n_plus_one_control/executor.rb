@@ -6,8 +6,6 @@ module NPlusOneControl
   # Runs code for every scale factor
   # and returns collected queries.
   class Executor
-    COLLECTORS = {db: Collectors::DB}
-
     class << self
       attr_accessor :transaction_begin
       attr_accessor :transaction_rollback
@@ -34,15 +32,16 @@ module NPlusOneControl
       raise ArgumentError, "Block is required!" unless block_given?
 
       results = []
-      active_collectors = COLLECTORS.slice(*Array(collectors)).transform_values { |c| c.new(matching) }
+      active_collectors = CollectorsRegistry.slice(*Array(collectors)).transform_values { |c| c.new(matching) }
 
       (scale_factors || NPlusOneControl.default_scale_factors).each do |scale|
         @current_scale = scale
         with_transaction do
           population&.call(scale)
           active_collectors.values.each(&:subscribe)
-          results << [scale, active_collectors.transform_values { |c| c.call { yield } }]
-          active_collectors.values.each(&:unsubscribe)
+          yield
+          results << [scale, active_collectors.transform_values(&:queries)]
+          active_collectors.values.each(&:reset)
         end
       end
       results

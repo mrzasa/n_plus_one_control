@@ -52,4 +52,16 @@ describe NPlusOneControl::Executor do
     expect(result.last[0]).to eq 3
     expect(result.last[1][:db].size).to eq 3
   end
+
+  context "with several collectors", :n_plus_one do
+    before { NPlusOneControl::CollectorsRegistry.register(:another_collector, NPlusOneControl::Collectors::DB) }
+    after { NPlusOneControl::CollectorsRegistry.unregister(:another_collector) }
+
+    # Here, we test that number of actual proc runs doesn't depend on amount of collectors.
+    # There is no better way than test it via our matcher :D
+    it "runs block only once" do
+      expect { described_class.new.call(collectors: %i[db another_collector].first(current_scale), &observable) }
+        .to perform_constant_number_of_queries.with_scale_factors(1, 2)
+    end
+  end
 end

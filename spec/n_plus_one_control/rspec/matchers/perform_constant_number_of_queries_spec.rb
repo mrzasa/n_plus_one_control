@@ -3,7 +3,7 @@
 require "spec_helper"
 
 describe NPlusOneControl::RSpec do
-  describe 'perform_constant_number_of_queries' do
+  describe "perform_constant_number_of_queries" do
     context "when no N+1", :n_plus_one do
       populate { |n| create_list(:post, n) }
 
@@ -130,9 +130,10 @@ describe NPlusOneControl::RSpec do
 
       context "with matching is provided globally", :n_plus_one do
         around(:each) do |ex|
+          old_matching = NPlusOneControl.default_matching
           NPlusOneControl.default_matching = "posts"
           ex.run
-          NPlusOneControl.default_matching = nil
+          NPlusOneControl.default_matching = old_matching
         end
 
         populate { |n| create_list(:post, n) }

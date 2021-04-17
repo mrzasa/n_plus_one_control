@@ -1,22 +1,24 @@
+# frozen_string_literal: true
+
+require "n_plus_one_control/collectors_registry"
+
 module NPlusOneControl
   module Collectors
     class DB
+      attr_reader :queries
+
       def initialize(pattern)
         @pattern = pattern
+        @queries = []
       end
 
       def subscribe
         @subscriber = ActiveSupport::Notifications.subscribe(NPlusOneControl.event, method(:callback))
       end
 
-      def unsubscribe
-        ActiveSupport::Notifications.unsubscribe(@subscriber)
-      end
-
-      def call
+      def reset
+        unsubscribe
         @queries = []
-        yield
-        @queries
       end
 
       def callback(_name, _start, _finish, _message_id, values) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/LineLength
@@ -41,6 +43,12 @@ module NPlusOneControl
         NPlusOneControl.backtrace_cleaner.call(locations.lazy)
           .take(NPlusOneControl.backtrace_length).to_a
       end
+
+      def unsubscribe
+        ActiveSupport::Notifications.unsubscribe(@subscriber)
+      end
     end
   end
 end
+
+NPlusOneControl::CollectorsRegistry.register(:db, NPlusOneControl::Collectors::DB)
