@@ -54,8 +54,10 @@ describe NPlusOneControl::Executor do
   end
 
   context "with several collectors", :n_plus_one do
-    before { NPlusOneControl::CollectorsRegistry.register(:another_collector, NPlusOneControl::Collectors::DB) }
-    after { NPlusOneControl::CollectorsRegistry.unregister(:another_collector) }
+    before { NPlusOneControl::CollectorsRegistry.register(another_collector) }
+    after { NPlusOneControl::CollectorsRegistry.unregister(another_collector) }
+
+    let(:another_collector) { NPlusOneControl::Collectors::DB.dup.tap { |collector| collector.key = :another_collector } }
 
     # Here, we test that number of actual proc runs doesn't depend on amount of collectors.
     # There is no better way than test it via our matcher :D

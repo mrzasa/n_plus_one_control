@@ -4,13 +4,15 @@ require "spec_helper"
 
 describe NPlusOneControl::CollectorsRegistry do
   describe ".register" do
-    subject(:register) { described_class.register :__test_register, :SomeCollector }
+    subject(:register) { described_class.register(test_collector) }
 
-    after { described_class.unregister(:__test_register) }
+    after { described_class.unregister(test_collector) }
+
+    let(:test_collector) { Struct.new(:key).new(:__test_register) }
 
     specify do
       register
-      expect(described_class.collectors[:__test_register]).to eq(:SomeCollector)
+      expect(described_class.get(:__test_register)).to eq(test_collector)
     end
   end
 

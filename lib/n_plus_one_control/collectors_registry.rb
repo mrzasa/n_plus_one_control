@@ -3,11 +3,9 @@
 module NPlusOneControl
   class CollectorsRegistry
     class << self
-      attr_reader :collectors
-
-      def register(key, collector_class)
+      def register(collector_class)
         @collectors ||= {}
-        @collectors[key] = collector_class
+        @collectors[collector_class.key] = collector_class
       end
 
       def slice(*keys)
@@ -18,9 +16,17 @@ module NPlusOneControl
         collectors.slice(*keys)
       end
 
-      def unregister(*keys)
-        keys.each { |key| collectors.delete(key) }
+      def get(key)
+        collectors.fetch(key)
       end
+
+      def unregister(*classes)
+        classes.each { |klass| collectors.delete(klass.key) }
+      end
+
+      private
+
+      attr_reader :collectors
     end
   end
 end
